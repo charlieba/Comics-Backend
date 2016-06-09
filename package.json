@@ -1,0 +1,15 @@
+{
+  "name": "ComicsProject",
+  "version": "0.0.0",
+  "description": "ComicsProject",
+  "main": "app.js",
+  "author": {
+    "name": "giova",
+    "email": ""
+  },
+  "dependencies": {
+    "marvel": "^1.0.2",
+    "md5": "^2.1.0",
+    "mongoose": "^4.4.20"
+  }
+}
