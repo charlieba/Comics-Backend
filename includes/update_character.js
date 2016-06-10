@@ -1,33 +1,43 @@
 ﻿var params = require('./config_module.js');
 exports.execute_insert_news = function (req, res, mongoose, CharacterSchema, md5) {
-    var offset = 0;
-
+    var qs = require('querystring'), url = require('url');
     var modelNameCharacter = 'tbl_character';
     var Character = mongoose.model(modelNameCharacter, CharacterSchema);
-    var Marvel = require('marvel')
-    var marvel = new Marvel({ publicKey: "52b6305c2146fd0f86ae99c9878fcdc2", privateKey: "984ca2beeedd0fa2b81f7e22b7d7e29d5b632c8f" })
+    req.on('data', function (data) {
+        body += data;
+    });
+    req.on('end', function () {
     //for (var i = 0; i < 1500; i+100) {
     try {
-        query(marvel, 100);
-        query(marvel, 200);
-        query(marvel, 300);
-        query(marvel, 400);
-        query(marvel, 500);
-        query(marvel, 600);
-        query(marvel, 700);
-        query(marvel, 800);
-        query(marvel, 900);
-        query(marvel, 1000);
-        query(marvel, 1100);
-        query(marvel, 1200);
-        query(marvel, 1300);
-        query(marvel, 1400);
-        query(marvel, 1500);
-    } catch (err){ 
-        console.log(err);
-    }
-    
-
+        data = url.parse(req.url, true).query;
+        var offset = data['offset'];
+        if(offset==undefined){
+            offset=0;
+        }
+        
+        var Marvel = require('marvel')
+        var marvel = new Marvel({ publicKey: "52b6305c2146fd0f86ae99c9878fcdc2", privateKey: "984ca2beeedd0fa2b81f7e22b7d7e29d5b632c8f" })
+            query(marvel, parseInt(offset));
+            /*query(marvel, 100);
+            query(marvel, 200);
+            query(marvel, 300);
+            query(marvel, 400);
+            query(marvel, 500);
+            query(marvel, 600);
+            query(marvel, 700);
+            query(marvel, 800);
+            query(marvel, 900);
+            query(marvel, 1000);
+            query(marvel, 1100);
+            query(marvel, 1200);
+            query(marvel, 1300);
+            query(marvel, 1400);
+            query(marvel, 1500);*/
+        
+        } catch (err){ 
+            console.log(err);
+        }
+    });
     //}
     function query(marvel, offset) {
         console.log(offset);
@@ -35,10 +45,12 @@ exports.execute_insert_news = function (req, res, mongoose, CharacterSchema, md5
       .limit(offset, 100)
       .get(function (err, resp) {
             if (err) {
-                console.log("Error: ", err)
+                console.log("Error: ", err);
+                return false;
             }
             else {
                 processData(resp);
+                return true;
             }
         });
     }
@@ -56,10 +68,8 @@ exports.execute_insert_news = function (req, res, mongoose, CharacterSchema, md5
             } catch (err) {
                 console.error(err);
             }
-                    
-                    
-      
         }
+        return true;
     }
     function insertData(mongoose, md5, id, name, description, modified, thumbnail, detail) {
         var keyID = id + name;
@@ -70,7 +80,8 @@ exports.execute_insert_news = function (req, res, mongoose, CharacterSchema, md5
             'name': name,
             'description': description,
             'modified': modified,
-            'thumbnail': thumbnail
+            'thumbnail': thumbnail,
+            'detail':detail
         }, {
             upsert: true
         }, function (err, numberAffected, raw) {
@@ -78,6 +89,7 @@ exports.execute_insert_news = function (req, res, mongoose, CharacterSchema, md5
                 console.log("ERROR -> " + err);
         }      
         );
+        return true;
     }
     
     res.writeHead(200, "OK", { 'Content-Type': 'application/json' });
