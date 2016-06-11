@@ -42,9 +42,17 @@ http.createServer(function (req, res) {
             case '/update_character': {
                 var update_character = require('./includes/update_character.js');
                 update_character.execute_insert_news(req, res, mongoose, CharacterSchema, md5);
+                break;
+            }
+            case '/get_character': {
+                var update_character = require('./includes/update_character.js');
+                update_character.get_character(req, res, mongoose, CharacterSchema, md5);
+                break;
+            }default:{
+                res.writeHead(404, "Not found", { 'Content-Type': 'text/html' });
+                res.end('<html><head><title>404 - Not found</title></head><body><h1>Not found.</h1></body></html>');
             }
         }
     }
-    res.writeHead(404, "Not found", { 'Content-Type': 'text/html' });
-    res.end('<html><head><title>404 - Not found</title></head><body><h1>Not found.</h1></body></html>');
+    
 }).listen(3021);

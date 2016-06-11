@@ -40,7 +40,6 @@ exports.execute_insert_news = function (req, res, mongoose, CharacterSchema, md5
     });
     //}
     function query(marvel, offset) {
-        console.log(offset);
        marvel.characters
       .limit(offset, 100)
       .get(function (err, resp) {
@@ -73,7 +72,6 @@ exports.execute_insert_news = function (req, res, mongoose, CharacterSchema, md5
     }
     function insertData(mongoose, md5, id, name, description, modified, thumbnail, detail) {
         var keyID = id + name;
-        console.log(name);
         Character.update({
             '_id': params.generateID(keyID, mongoose, md5).toString()
         }, {
@@ -94,4 +92,37 @@ exports.execute_insert_news = function (req, res, mongoose, CharacterSchema, md5
     
     res.writeHead(200, "OK", { 'Content-Type': 'application/json' });
     res.end('{}');
+};
+exports.get_character=function (req, res, mongoose, CharacterSchema, md5) {
+    
+    var qs = require('querystring'), url = require('url'); //file system module if it's needed
+    var body = '';
+    req.on('data', function (data) {
+        body += data;
+    });
+    req.on('end', function () {
+        var data = '';
+        if (req.method == 'GET') {
+            data = url.parse(req.url, true).query;
+        } else {
+            data = qs.parse(body);
+        }
+            var modelNameCharacter = 'tbl_character';
+            var Character = mongoose.model(modelNameCharacter, CharacterSchema);
+
+                Character.getAll(function (err, resp)
+                {
+                    //Temporary
+                    var jsonString = "[{}]";
+                    console.log(resp);
+                    if (resp != null) {
+                        jsonString = JSON.stringify(resp)
+                        //jsonString = jsonString.replace(/\"_id\":/g, "\"team-id\":");
+                    }
+                    res.writeHead(200, "OK", { 'Content-Type': 'application/json' });
+                    res.end(jsonString);
+                });
+
+        
+    });
 };

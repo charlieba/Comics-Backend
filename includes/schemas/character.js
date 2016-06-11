@@ -8,5 +8,8 @@
         'thumbnail': String,
         'detail': mongoose.Schema.Types.Mixed
     });
+    ObjectSchema.statics.getAll = function (cb) {
+        this.find({}, '-__v', cb);
+    }
     return ObjectSchema;
 };
