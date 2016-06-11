@@ -93,10 +93,12 @@ exports.execute_insert_news = function (req, res, mongoose, CharacterSchema, md5
     res.writeHead(200, "OK", { 'Content-Type': 'application/json' });
     res.end('{}');
 };
-exports.get_character=function (req, res, mongoose, CharacterSchema, md5) {
-    
+exports.get_character=function (req, res, zlib, cache_time,cache, mongoose, CharacterSchema, md5) {
+
     var qs = require('querystring'), url = require('url'); //file system module if it's needed
     var body = '';
+    var _cachekey = '';
+    var value = null;
     req.on('data', function (data) {
         body += data;
     });
@@ -109,19 +111,32 @@ exports.get_character=function (req, res, mongoose, CharacterSchema, md5) {
         }
             var modelNameCharacter = 'tbl_character';
             var Character = mongoose.model(modelNameCharacter, CharacterSchema);
-
+            _cachekey = "execute_get_character";
+            value = cache.get(_cachekey);
+            if (typeof value!= 'undefined') {
+                console.log('cache');
+                 res.writeHead(200, "OK", { 'Content-Type': 'application/json' });
+                 res.end(value);
+             }else{
                 Character.getAll(function (err, resp)
                 {
                     //Temporary
                     var jsonString = "[{}]";
-                    console.log(resp);
                     if (resp != null) {
                         jsonString = JSON.stringify(resp)
                         //jsonString = jsonString.replace(/\"_id\":/g, "\"team-id\":");
                     }
                     res.writeHead(200, "OK", { 'Content-Type': 'application/json' });
-                    res.end(jsonString);
+                     var buf = new Buffer(jsonString, 'utf-8');
+                    zlib.gzip(buf, function (_, result) {
+                        cache.set(_cachekey, jsonString, cache_time);
+                        buf = null;
+                        console.log('no cache');
+                        res.end(jsonString);
+                    });
                 });
+             }
+                
 
         
     });

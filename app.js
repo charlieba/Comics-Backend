@@ -1,6 +1,8 @@
 ﻿var http = require('http');
 var md5 = require('MD5');
 var mongoose = require("mongoose");
+var zlib = require('zlib');
+var NodeCache = require('node-cache');
 //var port = process.env.port || 3021;
 var uristring = 'mongodb://localhost/db_comics';
 var options = {
@@ -29,8 +31,13 @@ db.on('disconnected', function () {
     console.log('MongoDB disconnected!');
 });
 mongoose.connect(uristring, options);
-
-
+var cache_time_e = 43200;
+var cache_time_d = 21600;
+var cache_time_c = 10800;
+var cache_time_b = 3600;
+var cache_time_a5 = 300;
+var cache_time_a = 60;
+var cache = new NodeCache();
 var character_model = require('./includes/schemas/character.js');
 var CharacterSchema = character_model.character_model(mongoose);
 
@@ -45,8 +52,9 @@ http.createServer(function (req, res) {
                 break;
             }
             case '/get_character': {
+                var cache_time=cache_time_b;
                 var update_character = require('./includes/update_character.js');
-                update_character.get_character(req, res, mongoose, CharacterSchema, md5);
+                update_character.get_character(req, res, zlib, cache_time, cache, mongoose, CharacterSchema, md5);
                 break;
             }default:{
                 res.writeHead(404, "Not found", { 'Content-Type': 'text/html' });
