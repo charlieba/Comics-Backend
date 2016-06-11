@@ -56,6 +56,11 @@ http.createServer(function (req, res) {
                 var update_character = require('./includes/update_character.js');
                 update_character.get_character(req, res, zlib, cache_time, cache, mongoose, CharacterSchema, md5);
                 break;
+            }case '/search': {
+                var cache_time=cache_time_b;
+                var update_character = require('./includes/update_character.js');
+                update_character.search(req, res, zlib, cache_time, cache, mongoose, CharacterSchema, md5);
+                break;
             }default:{
                 res.writeHead(404, "Not found", { 'Content-Type': 'text/html' });
                 res.end('<html><head><title>404 - Not found</title></head><body><h1>Not found.</h1></body></html>');

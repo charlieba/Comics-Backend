@@ -72,6 +72,7 @@ exports.execute_insert_news = function (req, res, mongoose, CharacterSchema, md5
     }
     function insertData(mongoose, md5, id, name, description, modified, thumbnail, detail) {
         var keyID = id + name;
+        var tag=name.toLowerCase();
         Character.update({
             '_id': params.generateID(keyID, mongoose, md5).toString()
         }, {
@@ -79,7 +80,8 @@ exports.execute_insert_news = function (req, res, mongoose, CharacterSchema, md5
             'description': description,
             'modified': modified,
             'thumbnail': thumbnail,
-            'detail':detail
+            'detail':detail,
+            'tag':tag
         }, {
             upsert: true
         }, function (err, numberAffected, raw) {
@@ -99,45 +101,139 @@ exports.get_character=function (req, res, zlib, cache_time,cache, mongoose, Char
     var body = '';
     var _cachekey = '';
     var value = null;
+    var character_id='';
+    var skip=0;
+    var limit=0;
     req.on('data', function (data) {
         body += data;
     });
     req.on('end', function () {
-        var data = '';
-        if (req.method == 'GET') {
-            data = url.parse(req.url, true).query;
-        } else {
-            data = qs.parse(body);
-        }
-            var modelNameCharacter = 'tbl_character';
-            var Character = mongoose.model(modelNameCharacter, CharacterSchema);
-            _cachekey = "execute_get_character";
-            value = cache.get(_cachekey);
-            if (typeof value!= 'undefined') {
-                console.log('cache');
-                 res.writeHead(200, "OK", { 'Content-Type': 'application/json' });
-                 res.end(value);
-             }else{
-                Character.getAll(function (err, resp)
-                {
-                    //Temporary
-                    var jsonString = "[{}]";
-                    if (resp != null) {
-                        jsonString = JSON.stringify(resp)
-                        //jsonString = jsonString.replace(/\"_id\":/g, "\"team-id\":");
-                    }
+        try{
+             var data = '';
+            if (req.method == 'GET') {
+                data = url.parse(req.url, true).query;
+            } else {
+                data = qs.parse(body);
+            }
+            character_id=data['character-id'];
+            skip=data['skip'];
+            limit=data['limit'];
+                var modelNameCharacter = 'tbl_character';
+                var Character = mongoose.model(modelNameCharacter, CharacterSchema);
+                _cachekey = "execute_get_character"+character_id+skip+limit;
+                value = cache.get(_cachekey);
+                if (typeof value!= 'undefined') {
+                    console.log('cache');
                     res.writeHead(200, "OK", { 'Content-Type': 'application/json' });
-                     var buf = new Buffer(jsonString, 'utf-8');
-                    zlib.gzip(buf, function (_, result) {
-                        cache.set(_cachekey, jsonString, cache_time);
-                        buf = null;
-                        console.log('no cache');
-                        res.end(jsonString);
-                    });
-                });
-             }
-                
+                    res.end(value);
+                }else{
+                    if((character_id!=undefined)&&(mongoose.Types.ObjectId.isValid(character_id))){
+                        Character.findByCharacterId(character_id,function (err, resp){
+                        var jsonString = "[{}]";
+                        if (resp != null) {
+                            jsonString = JSON.stringify(resp);   
+                        }
+                        res.writeHead(200, "OK", { 'Content-Type': 'application/json' });
+                            var buf = new Buffer(jsonString, 'utf-8');
+                            zlib.gzip(buf, function (_, result) {
+                                cache.set(_cachekey, jsonString, cache_time);
+                                buf = null;
+                                console.log('no cache');
+                                res.end(jsonString);
+                            });
+                        });
+                    }else if((skip!=undefined)||(limit!=undefined)){
+                        Character.getAllByPagination(skip, limit,function (err, resp){
+                        var jsonString = "[{}]";
+                        if (resp != null) {
+                            jsonString = JSON.stringify(resp);   
+                        }
+                        res.writeHead(200, "OK", { 'Content-Type': 'application/json' });
+                            var buf = new Buffer(jsonString, 'utf-8');
+                            zlib.gzip(buf, function (_, result) {
+                                cache.set(_cachekey, jsonString, cache_time);
+                                buf = null;
+                                console.log('no cache');
+                                res.end(jsonString);
+                            });
+                        });
+                    }else{
+                        Character.getAll(function (err, resp){
+                        var jsonString = "[{}]";
+                        if (resp != null) {
+                            jsonString = JSON.stringify(resp);   
+                        }
+                        res.writeHead(200, "OK", { 'Content-Type': 'application/json' });
+                            var buf = new Buffer(jsonString, 'utf-8');
+                            zlib.gzip(buf, function (_, result) {
+                                cache.set(_cachekey, jsonString, cache_time);
+                                buf = null;
+                                console.log('no cache');
+                                res.end(jsonString);
+                            });
+                        });
+                    }
+                    
+                }
+        }catch(ex){
+            res.writeHead(200, "OK", { 'Content-Type': 'application/json' });
+            res.end("[{}]");
+        }
 
-        
+    });
+};
+
+exports.search=function (req, res, zlib, cache_time,cache, mongoose, CharacterSchema, md5) {
+ var qs = require('querystring'), url = require('url'); //file system module if it's needed
+    var body = '';
+    var _cachekey = '';
+    var value = null;
+    var key='';
+    req.on('data', function (data) {
+        body += data;
+    });
+    req.on('end', function () {
+        try{
+              var data = '';
+            if (req.method == 'GET') {
+                data = url.parse(req.url, true).query;
+            } else {
+                data = qs.parse(body);
+            }
+            key=data['key'];
+                var modelNameCharacter = 'tbl_character';
+                var Character = mongoose.model(modelNameCharacter, CharacterSchema);
+                _cachekey = "execute_find_by_name"+key;
+                value = cache.get(_cachekey);
+                if (typeof value!= 'undefined') {
+                    console.log('cache');
+                    res.writeHead(200, "OK", { 'Content-Type': 'application/json' });
+                    res.end(value);
+                }else{
+                    if(key!=undefined){
+                        Character.findByName(key,function (err, resp){
+                        var jsonString = "[{}]";
+                        if (resp != null) {
+                            jsonString = JSON.stringify(resp);   
+                        }
+                        res.writeHead(200, "OK", { 'Content-Type': 'application/json' });
+                            var buf = new Buffer(jsonString, 'utf-8');
+                            zlib.gzip(buf, function (_, result) {
+                                cache.set(_cachekey, jsonString, cache_time);
+                                buf = null;
+                                console.log('no cache');
+                                res.end(jsonString);
+                            });
+                        });
+                    }else{
+                        res.writeHead(200, "OK", { 'Content-Type': 'application/json' });
+                        res.end("[{}]");
+                    }
+                   
+                }
+        }catch(err){
+            res.writeHead(200, "OK", { 'Content-Type': 'application/json' });
+            res.end("[{}]");
+        }
     });
 };
