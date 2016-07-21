@@ -8,7 +8,7 @@
         'tag':String
     });
     ObjectSchema.statics.getAll = function (cb) {
-        this.find({}, '-__v', cb).sort({ 'tag': 1 });
+        this.find({}, '-__v -_id -tag -detail -modified -description', cb).sort({ 'tag': 1 });
     }
     ObjectSchema.statics.findByCharacterId = function (character_id, cb) {
         this.findOne({"_id": character_id}, cb);

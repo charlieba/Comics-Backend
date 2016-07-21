@@ -1,7 +1,9 @@
 ﻿var params = require('./config_module.js');
-exports.execute_insert_news = function (req, res, mongoose, CharacterSchema, md5) {
-    var qs = require('querystring'), url = require('url');
-    var modelNameCharacter = 'tbl_character';
+var Marvel = require('marvel')
+var marvel = new Marvel({ publicKey: "52b6305c2146fd0f86ae99c9878fcdc2", privateKey: "984ca2beeedd0fa2b81f7e22b7d7e29d5b632c8f" });
+var qs = require('querystring'), url = require('url');
+var modelNameCharacter = 'tbl_character';
+exports.execute_insert_news = function (req, res, mongoose, CharacterSchema, md5) {   
     var Character = mongoose.model(modelNameCharacter, CharacterSchema);
     req.on('data', function (data) {
         body += data;
@@ -13,10 +15,7 @@ exports.execute_insert_news = function (req, res, mongoose, CharacterSchema, md5
         var offset = data['offset'];
         if(offset==undefined){
             offset=0;
-        }
-        
-        var Marvel = require('marvel')
-        var marvel = new Marvel({ publicKey: "52b6305c2146fd0f86ae99c9878fcdc2", privateKey: "984ca2beeedd0fa2b81f7e22b7d7e29d5b632c8f" })
+        }     
             query(marvel, parseInt(offset));
             /*query(marvel, 100);
             query(marvel, 200);
@@ -39,19 +38,55 @@ exports.execute_insert_news = function (req, res, mongoose, CharacterSchema, md5
         }
     });
     //}
-    function query(marvel, offset) {
-       marvel.characters
-      .limit(offset, 100)
-      .get(function (err, resp) {
-            if (err) {
-                console.log("Error: ", err);
-                return false;
+    function query(marvel, pag) {
+        var api = require('marvel-comics-api')
+        try{
+            api('characters', {
+            publicKey: '52b6305c2146fd0f86ae99c9878fcdc2',
+            privateKey: '984ca2beeedd0fa2b81f7e22b7d7e29d5b632c8f',
+            query: {
+                limit: 100,
+                offset:pag
             }
-            else {
-                processData(resp);
-                return true;
-            }
-        });
+            }, function (err, body) {
+            if (err){
+                console.error(err);
+            } 
+                if(body!=undefined && body.data!=undefined && body.data.total!=undefined && body.data.results!=undefined){
+                    // total # of items 
+                    console.log(body.data.total);
+
+                    // array of characters 
+                    //console.log(body.data.results);
+                    processData(body.data.results);
+                }else{
+                    console.error('ERROR AL OBTENER UPDATE_CHARACTER LIMIT: 100 | OFFSET: '+pag);
+                }
+              
+            });
+        }catch(err){
+
+        }
+        // fetch 50 Marvel characters 
+       
+        /*try {
+           marvel.characters
+          .limit(offset, 100)
+          .get(function (err, resp) {
+                    if (err) {
+                        console.log("Error: ", err);
+                        return false;
+                    }
+                    else {
+                    
+                        processData(resp);
+                        return true;
+                    }
+                });
+        } catch (err) { 
+            console.log(err);
+        }*/
+       
     }
     function processData(resp) {
         var jsonString = JSON.parse(JSON.stringify(resp));
@@ -123,7 +158,6 @@ exports.get_character=function (req, res, zlib, cache_time,cache, mongoose, Char
                 _cachekey = "execute_get_character"+character_id+skip+limit;
                 value = cache.get(_cachekey);
                 if (typeof value!= 'undefined') {
-                    console.log('cache');
                     res.writeHead(200, "OK", { 'Content-Type': 'application/json' });
                     res.end(value);
                 }else{
@@ -138,7 +172,6 @@ exports.get_character=function (req, res, zlib, cache_time,cache, mongoose, Char
                             zlib.gzip(buf, function (_, result) {
                                 cache.set(_cachekey, jsonString, cache_time);
                                 buf = null;
-                                console.log('no cache');
                                 res.end(jsonString);
                             });
                         });
@@ -153,7 +186,6 @@ exports.get_character=function (req, res, zlib, cache_time,cache, mongoose, Char
                             zlib.gzip(buf, function (_, result) {
                                 cache.set(_cachekey, jsonString, cache_time);
                                 buf = null;
-                                console.log('no cache');
                                 res.end(jsonString);
                             });
                         });
@@ -168,7 +200,6 @@ exports.get_character=function (req, res, zlib, cache_time,cache, mongoose, Char
                             zlib.gzip(buf, function (_, result) {
                                 cache.set(_cachekey, jsonString, cache_time);
                                 buf = null;
-                                console.log('no cache');
                                 res.end(jsonString);
                             });
                         });
@@ -206,7 +237,6 @@ exports.search=function (req, res, zlib, cache_time,cache, mongoose, CharacterSc
                 _cachekey = "execute_find_by_name"+key;
                 value = cache.get(_cachekey);
                 if (typeof value!= 'undefined') {
-                    console.log('cache');
                     res.writeHead(200, "OK", { 'Content-Type': 'application/json' });
                     res.end(value);
                 }else{
@@ -221,7 +251,6 @@ exports.search=function (req, res, zlib, cache_time,cache, mongoose, CharacterSc
                             zlib.gzip(buf, function (_, result) {
                                 cache.set(_cachekey, jsonString, cache_time);
                                 buf = null;
-                                console.log('no cache');
                                 res.end(jsonString);
                             });
                         });
