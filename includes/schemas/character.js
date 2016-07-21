@@ -19,7 +19,7 @@
         this.find({}, '-__v', cb).sort({ 'name': 1 }).skip(_skip).limit(_limit);
     }
     ObjectSchema.statics.findByName = function (key,cb) {
-        this.find( { "name": { "$regex": key, "$options": "i" } }, '-__v', cb).sort({ 'tag': 1 });
+        this.find( {$or: [{ "name": { "$regex": key, "$options": "i" } },{"name":key} ]} , '-__v', cb).sort({ 'tag': 1 });
     }
     return ObjectSchema;
 };
