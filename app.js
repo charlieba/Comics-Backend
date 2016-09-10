@@ -52,14 +52,34 @@ http.createServer(function (req, res) {
                 break;
             }
             case '/get_character': {
-                var cache_time=cache_time_b;
+                var cache_time=cache_time_e;
                 var update_character = require('./includes/update_character.js');
                 update_character.get_character(req, res, zlib, cache_time, cache, mongoose, CharacterSchema, md5);
                 break;
             }case '/search': {
-                var cache_time=cache_time_b;
+                var cache_time=cache_time_e;
                 var update_character = require('./includes/update_character.js');
                 update_character.search(req, res, zlib, cache_time, cache, mongoose, CharacterSchema, md5);
+                break;
+            }case '/get_top_heroes': {
+                var cache_time=cache_time_e;
+                var update_character = require('./includes/update_character.js');
+                update_character.get_top_heroes(req, res, zlib, cache_time, cache, mongoose, CharacterSchema, md5,"top_heroes");
+                break;
+            }case '/get_bad_guys': {
+                var cache_time=cache_time_e;
+                var update_character = require('./includes/update_character.js');
+                update_character.get_top_heroes(req, res, zlib, cache_time, cache, mongoose, CharacterSchema, md5,"bad_guys");
+                break;
+            }case '/get_women_heroes': {
+                var cache_time=cache_time_e;
+                var update_character = require('./includes/update_character.js');
+                update_character.get_top_heroes(req, res, zlib, cache_time, cache, mongoose, CharacterSchema, md5,"women_heroes");
+                break;
+            }case '/get_titanic_teams': {
+                var cache_time=cache_time_e;
+                var update_character = require('./includes/update_character.js');
+                update_character.get_top_heroes(req, res, zlib, cache_time, cache, mongoose, CharacterSchema, md5,"titanic_teams");
                 break;
             }default:{
                 res.writeHead(404, "Not found", { 'Content-Type': 'text/html' });
